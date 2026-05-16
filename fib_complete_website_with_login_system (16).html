@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FIB Secure Portal</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Source+Serif+4:wght@300;400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --navy: #0a1628;
+      --navy-mid: #112240;
+      --gold: #c8a84b;
+      --gold-light: #e6c96a;
+      --cream: #f0ead8;
+      --red: #8b1a1a;
+      --gray: #8a9bb0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--navy);
+      color: var(--cream);
+      font-family: 'Source Serif 4', serif;
+      overflow-x: hidden;
+    }
+
+    /* LOGIN */
+    #loginOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5,10,20,0.97);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      backdrop-filter: blur(8px);
+    }
+
+    .login-box {
+      width: 420px;
+      background: #112240;
+      border: 1px solid rgba(200,168,75,0.5);
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(0,0,0,0.6);
+    }
+
+    .login-box h2 {
+      font-family: 'Oswald', sans-serif;
+      color: var(--gold);
+      letter-spacing: 0.2em;
+      margin-bottom: 12px;
+    }
+
+    .login-box p {
+      color: var(--gray);
+      margin-bottom: 30px;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .login-box input {
+      width: 100%;
+      margin-bottom: 15px;
+      padding: 14px;
+      background: #08111f;
+      border: 1px solid rgba(200,168,75,0.3);
+      color: white;
+      outline: none;
+    }
+
+    .login-box button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      background: var(--gold);
+      color: var(--navy);
+      font-weight: bold;
+      cursor: pointer;
+      font-family: 'Oswald', sans-serif;
+      letter-spacing: 0.2em;
+    }
+
+    .login-box button:hover {
+      background: var(--gold-light);
+    }
+
+    #loginError {
+      color: #ff6666;
+      margin-top: 15px;
+      display: none;
+      font-size: 13px;
+    }
+
+    /* HEADER */
+    .topbar {
+      background: var(--red);
+      text-align: center;
+      padding: 8px;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    /* FIB BRANDING */
+    .fib-brand {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .fib-brand img {
+      width: 85px;
+      height: 85px;
+      object-fit: contain;
+      border-radius: 50%;
+      border: 2px solid rgba(200,168,75,0.5);
+      background: rgba(255,255,255,0.03);
+      padding: 6px;
+    }
+
+    .fib-brand-text h1 {
+      font-family: 'Oswald', sans-serif;
+      letter-spacing: 0.25em;
+      color: var(--gold);
+      font-size: 42px;
+      line-height: 1;
+    }
+
+    .fib-brand-text p {
+      color: var(--cream);
+      letter-spacing: 0.18em;
+      font-size: 14px;
+      margin-top: 6px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    header {
+      background: var(--navy-mid);
+      border-bottom: 2px solid var(--gold);
+      padding: 25px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-family: 'Oswald', sans-serif;
+      letter-spacing: 0.25em;
+      color: var(--gold);
+    }
+
+    nav {
+      display: flex;
+      gap: 20px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: var(--cream);
+      text-transform: uppercase;
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.15em;
+    }
+
+    nav a:hover {
+      color: var(--gold);
+    }
+
+    /* HERO */
+    .hero {
+      min-height: 85vh;
+      display: flex;
+      align-items: center;
+      padding: 80px;
+      background: linear-gradient(160deg,#0a1628,#10233f);
+    }
+
+    .hero-content {
+      max-width: 700px;
+    }
+
+    .hero-badge {
+      color: var(--gold);
+      letter-spacing: 0.3em;
+      font-size: 11px;
+      margin-bottom: 20px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .hero h2 {
+      font-family: 'Oswald', sans-serif;
+      font-size: 72px;
+      line-height: 0.95;
+      margin-bottom: 25px;
+      text-transform: uppercase;
+    }
+
+    .hero h2 span {
+      color: var(--gold);
+      display: block;
+    }
+
+    .hero p {
+      color: var(--gray);
+      line-height: 1.8;
+      margin-bottom: 40px;
+      font-size: 16px;
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      color: var(--navy);
+      padding: 14px 28px;
+      text-decoration: none;
+      font-family: 'Oswald', sans-serif;
+      letter-spacing: 0.15em;
+      font-weight: bold;
+      display: inline-block;
+    }
+
+    .btn-primary:hover {
+      background: var(--gold-light);
+    }
+
+    section {
+      padding: 80px;
+    }
+
+    .section-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 42px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+
+    .section-title span {
+      color: var(--gold);
+    }
+
+    .divider {
+      width: 60px;
+      height: 2px;
+      background: var(--gold);
+      margin-bottom: 40px;
+    }
+
+    /* WANTED */
+    .wanted-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+      gap: 20px;
+      margin-top: 40px;
+    }
+
+    .wanted-card {
+      background: var(--navy-mid);
+      border: 1px solid rgba(200,168,75,0.2);
+      overflow: hidden;
+    }
+
+    .wanted-photo {
+      height: 260px;
+      background: #091320;
+      overflow: hidden;
+    }
+
+    .wanted-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .wanted-info {
+      padding: 20px;
+    }
+
+    .wanted-name {
+      font-family: 'Oswald', sans-serif;
+      margin-bottom: 10px;
+      font-size: 18px;
+      letter-spacing: 0.08em;
+    }
+
+    .wanted-crime {
+      color: var(--gray);
+      font-size: 13px;
+    }
+
+    .wanted-reward {
+      color: var(--gold);
+      margin-top: 12px;
+      font-weight: bold;
+    }
+
+    /* REPORT */
+    .report-form {
+      display: grid;
+      gap: 15px;
+      max-width: 600px;
+    }
+
+    .report-form input,
+    .report-form textarea,
+    .report-form select {
+      background: #08111f;
+      border: 1px solid rgba(200,168,75,0.3);
+      padding: 14px;
+      color: white;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    footer {
+      background: #060f1e;
+      border-top: 2px solid var(--gold);
+      padding: 40px;
+      text-align: center;
+      color: var(--gray);
+      font-size: 13px;
+    }
+
+    /* ADMIN */
+    .admin-panel {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--navy-mid);
+      border: 1px solid var(--gold);
+      padding: 16px;
+      z-index: 9999;
+    }
+
+    .admin-panel button {
+      background: var(--gold);
+      border: none;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .user-controls {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(10,22,40,0.95);
+      border: 1px solid rgba(200,168,75,0.4);
+      padding: 12px 16px;
+    }
+
+    .user-controls span {
+      color: white;
+      font-size: 13px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .user-controls button {
+      background: var(--gold);
+      border: none;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    @media(max-width: 900px) {
+      .hero {
+        padding: 40px 24px;
+      }
+
+      .hero h2 {
+        font-size: 52px;
+      }
+
+      section {
+        padding: 60px 24px;
+      }
+
+      header {
+        flex-direction: column;
+        gap: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginOverlay">
+    <div class="login-box">
+      <h2>FIB SECURE ACCESS</h2>
+      <p>NUR FÜR AUTORISIERTE MITARBEITER</p>
+
+      <input type="text" id="username" placeholder="Username">
+      <input type="password" id="password" placeholder="Password">
+
+      <button onclick="login()">LOGIN</button>
+
+      <div id="loginError">Ungültige Zugangsdaten</div>
+    </div>
+  </div>
+
+  <div class="topbar">
+    ⚠ OFFICIAL FIB PORTAL — ALL ACTIVITY IS MONITORED ⚠
+  </div>
+
+  <header>
+    <div class="fib-brand">
+      <img src="FIB_logoC.webp" alt="FIB Logo">
+
+      <div class="fib-brand-text">
+        <h1>FIB</h1>
+        <p>Federal Investigation Bureau • Est. 1935</p>
+      </div>
+    </div>
+
+    <nav>
+      <a href="#wanted">Most Wanted</a>
+      <a href="#report">Report</a>
+      <a href="#about">About</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">Bundesweite Ermittlungsbehörde</div>
+
+      <h2>
+        Schutz Der
+        <span>Nation.</span>
+      </h2>
+
+      <p>
+        Das Federal Investigation Bureau ist für die Bekämpfung von Terrorismus, organisierter Kriminalität, Drogenhandel und schweren Straftaten zuständig. Interne Informationen sind ausschließlich autorisiertem Personal zugänglich.
+      </p>
+
+      <a href="#wanted" class="btn-primary">FAHNDUNGEN ÖFFNEN</a>
+    </div>
+  </section>
+
+  <section id="wanted">
+    <h2 class="section-title">Aktive <span>Fahndungen</span></h2>
+    <div class="divider"></div>
+
+    <div class="wanted-grid">
+
+      <div class="wanted-card">
+        <div class="wanted-photo">
+          <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop" alt="Wanted Person">
+        </div>
+
+        <div style="padding:10px; background:#08111f; border-top:1px solid rgba(200,168,75,0.2);">
+          <input type="file" accept="image/*" onchange="changeWantedImage(event, this)" style="width:100%; color:white;">
+        </div>
+        <div class="wanted-info">
+          <div class="wanted-name">Viktor Morozov</div>
+          <div class="wanted-crime">Terrorism</div>
+          <div class="wanted-reward">$500,000 Reward</div>
+        </div>
+      </div>
+
+      <div class="wanted-card">
+        <div class="wanted-photo">
+          <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop" alt="Wanted Person">
+        </div>
+
+        <div style="padding:10px; background:#08111f; border-top:1px solid rgba(200,168,75,0.2);">
+          <input type="file" accept="image/*" onchange="changeWantedImage(event, this)" style="width:100%; color:white;">
+        </div>
+        <div class="wanted-info">
+          <div class="wanted-name">Carla Mendez</div>
+          <div class="wanted-crime">Drug Trafficking</div>
+          <div class="wanted-reward">$250,000 Reward</div>
+          <input type="file" accept="image/*" onchange="changeWantedImage(event, this)">
+        
+        </div>
+      </div>
+
+      <div class="wanted-card">
+        <div class="wanted-photo">
+          <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop" alt="Wanted Person">
+        </div>
+
+        <div style="padding:10px; background:#08111f; border-top:1px solid rgba(200,168,75,0.2);">
+          <input type="file" accept="image/*" onchange="changeWantedImage(event, this)" style="width:100%; color:white;">
+        </div>
+        <div class="wanted-info">
+          <div class="wanted-name">Marcus Belleview</div>
+          <div class="wanted-crime">Domestic Terrorism</div>
+          <div class="wanted-reward">$150,000 Reward</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section style="background:#08111f; border-top:1px solid rgba(200,168,75,0.2); border-bottom:1px solid rgba(200,168,75,0.2);">
+    <h2 class="section-title">Interne <span>Operationen</span></h2>
+    <div class="divider"></div>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px;">
+
+      <div style="background:#112240; padding:24px; border:1px solid rgba(200,168,75,0.2);">
+        <h3 style="color:#c8a84b; margin-bottom:15px; font-family:'Oswald',sans-serif; letter-spacing:0.1em;">AKTIVE DROGENROUTEN</h3>
+        <p style="color:#8a9bb0; line-height:1.8;">
+          Überwachung aktiver Methamphetamin- und Speed-Routen innerhalb des Countys. Verwaltung und Auswertung durch die FIB-Narcotics Division.
+        </p>
+      </div>
+
+      <div style="background:#112240; padding:24px; border:1px solid rgba(200,168,75,0.2);">
+        <h3 style="color:#c8a84b; margin-bottom:15px; font-family:'Oswald',sans-serif; letter-spacing:0.1em;">TAKTISCHE AUSBILDUNG</h3>
+        <p style="color:#8a9bb0; line-height:1.8;">
+          Interne Ausbildungsunterlagen für Terrorabwehr, Razzien, Geisellagen sowie Ermittlungen gegen organisierte Kriminalität.
+        </p>
+      </div>
+
+      <div style="background:#112240; padding:24px; border:1px solid rgba(200,168,75,0.2);">
+        <h3 style="color:#c8a84b; margin-bottom:15px; font-family:'Oswald',sans-serif; letter-spacing:0.1em;">ACTIVE FAHNDUNGEN</h3>
+        <p style="color:#8a9bb0; line-height:1.8;">
+          Internes Fahndungssystem mit laufenden Ermittlungen, Terrorverdächtigen und kriminellen Gruppierungen.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <section style="background:#0d1b31;">
+    <h2 class="section-title">FIB <span>Ausbildungen</span></h2>
+    <div class="divider"></div>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px;">
+
+      <div style="background:#112240; padding:22px; border-left:3px solid #c8a84b;">
+        <h3 style="margin-bottom:12px; color:#c8a84b;">Grundausbildung</h3>
+        <p style="color:#8a9bb0; line-height:1.8;">
+          Basis-Ausbildung für alle neuen FIB-Agenten inklusive Verhalten, Zugriffstechniken und Einsatzrecht.
+        </p>
+      </div>
+
+      <div style="background:#112240; padding:22px; border-left:3px solid #c8a84b;">
+        <h3 style="margin-bottom:12px; color:#c8a84b;">Flugausbildung</h3>
+        <p style="color:#8a9bb0; line-height:1.8;">
+          Ausbildung für Luftunterstützung, Helikopter-Einsätze und taktische Luftüberwachung.
+        </p>
+      </div>
+
+      <div style="background:#112240; padding:22px; border-left:3px solid #c8a84b;">
+        <h3 style="margin-bottom:12px; color:#c8a84b;">Gummigeschoss-Ausbildung</h3>
+        <p style="color:#8a9bb0; line-height:1.8;">
+          Ausbildung für den Umgang mit nicht-tödlichen Einsatzmitteln und Deeskalationsmaßnahmen.
+        </p>
+      </div>
+
+      <div style="background:#112240; padding:22px; border-left:3px solid #c8a84b;">
+        <h3 style="margin-bottom:12px; color:#c8a84b;">MP5-Ausbildung</h3>
+        <p style="color:#8a9bb0; line-height:1.8;">
+          Taktische Waffen-Ausbildung für MP5-Einsätze bei Terrorlagen und Hochrisiko-Operationen.
+        </p>
+      </div>
+
+      <div style="background:#112240; padding:22px; border-left:3px solid #c8a84b;">
+        <h3 style="margin-bottom:12px; color:#c8a84b;">Offroad-Ausbildung</h3>
+        <p style="color:#8a9bb0; line-height:1.8;">
+          Spezialausbildung für Verfolgungsfahrten und Einsätze außerhalb befestigter Straßen.
+        </p>
+      </div>
+
+      <div style="background:#112240; padding:22px; border-left:3px solid #c8a84b;">
+        <h3 style="margin-bottom:12px; color:#c8a84b;">Routenstürmungs-Ausbildung</h3>
+        <p style="color:#8a9bb0; line-height:1.8;">
+          Ausbildung für koordinierte Stürmungen von Drogenrouten und bewaffneten Gruppierungen.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="about" style="background:#112240;">
+    <h2 class="section-title">Über Das <span>FIB</span></h2>
+    <div class="divider"></div>
+
+    <p style="max-width:800px; line-height:1.9; color:#8a9bb0;">
+      Das Federal Investigation Bureau dient als nationale Ermittlungs- und Sicherheitsbehörde. Die Behörde bekämpft Terrorismus, organisierte Kriminalität, Korruption, Cyberkriminalität sowie den Drogenhandel. Die Sicherheit der Bürger und der Schutz nationaler Interessen stehen dabei an oberster Stelle.
+    </p>
+  </section>
+
+  <section id="report">
+    <h2 class="section-title">Hinweis <span>Melden</span></h2>
+    <div class="divider"></div>
+
+    <div class="report-form">
+      <input type="text" placeholder="Subject Name or Alias">
+
+      <select>
+        <option>Select Crime Type</option>
+        <option>Terrorism</option>
+        <option>Drug Trafficking</option>
+        <option>Cybercrime</option>
+        <option>Organized Crime</option>
+      </select>
+
+      <input type="text" placeholder="Last Known Location">
+
+      <textarea placeholder="Provide details..."></textarea>
+
+      <button class="btn-primary" onclick="submitTip()">
+        SUBMIT TIP
+      </button>
+    </div>
+  </section>
+
+  <section style="background:#08111f; border-top:1px solid rgba(200,168,75,0.2);">
+    <h2 class="section-title">GAB <span>Prüfung</span></h2>
+    <div class="divider"></div>
+
+    <div id="gabExam" style="max-width:800px;"></div>
+
+    <button onclick="submitGabExam()" class="btn-primary" style="margin-top:25px;">
+      GAB-PRÜFUNG ABSENDEN
+    </button>
+  </section>
+
+  <footer>
+    © 2026 FEDERAL INVESTIGATION BUREAU — ROLEPLAY PROJECT
+  </footer>
+
+  <script>
+    // USERS
+    let users = JSON.parse(localStorage.getItem('fib_users')) || [
+      {
+        username: 'admin',
+        password: 'FIB2026',
+        role: 'admin'
+      }
+    ];
+
+    // GAB PRÜFUNGEN
+    let gabQuestions = JSON.parse(localStorage.getItem('gab_questions')) || [
+      'Erklären Sie den Ablauf einer Verkehrskontrolle.',
+      'Wie verhält man sich bei einer bewaffneten Person?',
+      'Wann darf das FIB eine Route stürmen?'
+    ];
+
+    let gabResults = JSON.parse(localStorage.getItem('gab_results')) || [];
+
+    [
+      {
+        username: 'admin',
+        password: 'FIB2026',
+        role: 'admin'
+      }
+    ];
+
+    localStorage.setItem('fib_users', JSON.stringify(users));
+
+    function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      const user = users.find(
+        u => u.username === username && u.password === password
+      );
+
+      if (user) {
+        document.getElementById('loginOverlay').style.display = 'none';
+
+        // ONLY ADMIN CAN EDIT
+        if (user.role === 'admin') {
+          createAdminPanel(user.role);
+        }
+
+        createUserControls(user.username, user.role);
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+      }
+    }
+
+    // ADMIN PANEL
+    function createUserControls(username, role) {
+      const controls = document.createElement('div');
+      controls.className = 'user-controls';
+
+      controls.innerHTML = `
+        <span>${role.toUpperCase()} ACCESS • ${username}</span>
+        <button onclick="logout()">LOGOUT</button>
+      `;
+
+      document.body.appendChild(controls);
+    }
+
+    function logout() {
+      location.reload();
+    }
+
+    function createAdminPanel(role) {
+      const panel = document.createElement('div');
+      panel.className = 'admin-panel';
+
+      if (role === 'admin') {
+        panel.innerHTML = `
+          <button onclick="enableEditMode()">
+            ADMIN-BEARBEITUNGSMODUS
+          </button>
+
+          <button onclick="createAgentAccount()" style="margin-top:10px; width:100%;">
+            AGENTEN-ACCOUNT ERSTELLEN
+          </button>
+
+          <button onclick="openInstructorPanel()" style="margin-top:10px; width:100%;">
+            AUSBILDER-BEREICH
+          </button>
+        `;
+      }
+
+      document.body.appendChild(panel);
+    }
+
+    function enableEditMode() {
+      document.body.contentEditable = true;
+      document.designMode = 'on';
+
+      alert('Admin Edit Mode Enabled');
+    }
+
+    function createAgentAccount() {
+      const username = prompt('Benutzername eingeben:');
+      const password = prompt('Passwort eingeben:');
+      const role = prompt('Rolle festlegen: admin / ausbilder / agent');
+
+      if (!username || !password || !role) {
+        alert('Ungültige Daten');
+        return;
+      }
+
+      users.push({
+        username: username,
+        password: password,
+        role: role.toLowerCase()
+      });
+
+      localStorage.setItem('fib_users', JSON.stringify(users));
+
+      alert('Neuer Account erfolgreich erstellt');
+    }
+
+    function openInstructorPanel() {
+      // Entferne alten Bereich falls bereits geöffnet
+      const existing = document.getElementById('instructorPanel');
+      if (existing) existing.remove();
+
+      const panel = document.createElement('div');
+      panel.id = 'instructorPanel';
+
+      panel.style.position = 'fixed';
+      panel.style.top = '50%';
+      panel.style.left = '50%';
+      panel.style.transform = 'translate(-50%, -50%)';
+      panel.style.width = '900px';
+      panel.style.maxHeight = '85vh';
+      panel.style.overflowY = 'auto';
+      panel.style.background = '#08111f';
+      panel.style.border = '2px solid #c8a84b';
+      panel.style.padding = '30px';
+      panel.style.zIndex = '999999';
+      panel.style.boxShadow = '0 0 40px rgba(0,0,0,0.7)';
+
+      let html = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+          <h2 style="color:#c8a84b; font-family:Oswald,sans-serif; letter-spacing:0.1em;">
+            AUSBILDER-BEREICH
+          </h2>
+
+          <button onclick="closeInstructorPanel()" style="background:#8b1a1a; color:white; border:none; padding:10px 16px; cursor:pointer;">
+            SCHLIESSEN
+          </button>
+        </div>
+      `;
+
+      html += `
+        <div style="background:#112240; padding:20px; margin-bottom:25px; border:1px solid rgba(200,168,75,0.2);">
+          <h3 style="color:#c8a84b; margin-bottom:15px;">GAB-FRAGEN</h3>
+      `;
+
+      gabQuestions.forEach((q, i) => {
+        html += `
+          <div style="margin-bottom:12px; padding:12px; background:#08111f; color:white; border-left:3px solid #c8a84b;">
+            <strong>Frage ${i + 1}:</strong><br>
+            ${q}
+          </div>
+        `;
+      });
+
+      html += `
+          <button onclick="addGabQuestion()" style="margin-top:15px; padding:12px 18px; background:#c8a84b; border:none; cursor:pointer; font-weight:bold;">
+            NEUE FRAGE HINZUFÜGEN
+          </button>
+        </div>
+      `;
+
+      html += `
+        <div style="background:#112240; padding:20px; border:1px solid rgba(200,168,75,0.2);">
+          <h3 style="color:#c8a84b; margin-bottom:20px;">PRÜFUNGSERGEBNISSE</h3>
+      `;
+
+      if (gabResults.length === 0) {
+        html += `
+          <div style="color:#8a9bb0;">
+            Noch keine eingereichten Prüfungen vorhanden.
+          </div>
+        `;
+      }
+
+      gabResults.forEach((r, index) => {
+        html += `
+          <div style="margin-bottom:25px; background:#08111f; padding:18px; border-left:3px solid #c8a84b;">
+            <div style="margin-bottom:15px; color:#c8a84b; font-weight:bold;">
+              Prüfung #${index + 1} — ${r.user}
+            </div>
+        `;
+
+        r.answers.forEach((a, idx) => {
+          html += `
+            <div style="margin-bottom:15px; color:white;">
+              <strong>Frage ${idx + 1}:</strong><br><br>
+              <div style="background:#112240; padding:12px; margin-top:8px; color:#d7dde5;">
+                ${a || 'Keine Antwort'}
+              </div>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+      });
+
+      html += `</div>`;
+
+      panel.innerHTML = html;
+      document.body.appendChild(panel);
+    }
+
+    function closeInstructorPanel() {
+      const panel = document.getElementById('instructorPanel');
+      if (panel) panel.remove();
+    }
+
+    function addGabQuestion() {
+      const question = prompt('Neue GAB Frage eingeben:');
+      if (!question) return;
+      gabQuestions.push(question);
+      localStorage.setItem('gab_questions', JSON.stringify(gabQuestions));
+      alert('Frage hinzugefügt');
+    }
+
+    function unusedCreateAgentAccount() {
+      const username = prompt('Enter new Agent username:');
+      const password = prompt('Enter new Agent password:');
+
+      if (!username || !password) {
+        alert('Invalid data');
+        return;
+      }
+
+      users.push({
+        username: username,
+        password: password,
+        role: 'agent'
+      });
+
+      // SAVE USERS
+      localStorage.setItem('fib_users', JSON.stringify(users));
+
+      alert('New FIB Agent account created successfully');
+    }
+
+    // REPORT TIP
+    function changeWantedImage(event, input) {
+      const file = event.target.files[0];
+
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        const card = input.closest('.wanted-card');
+        const img = card.querySelector('.wanted-photo img');
+
+        img.src = e.target.result;
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    function renderGabExam() {
+      const container = document.getElementById('gabExam');
+      if (!container) return;
+
+      let html = '';
+
+      gabQuestions.forEach((q, i) => {
+        html += `<div style="margin-bottom:25px;"><label style="display:block; margin-bottom:10px; color:#c8a84b;">${i+1}. ${q}</label><textarea class="gab-answer" style="width:100%; min-height:120px; background:#112240; border:1px solid rgba(200,168,75,0.3); color:white; padding:15px;"></textarea></div>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function submitGabExam() {
+      const answers = [...document.querySelectorAll('.gab-answer')].map(a => a.value);
+
+      const usernameElement = document.querySelector('.user-controls span');
+      const username = usernameElement ? usernameElement.innerText : 'Unbekannt';
+
+      gabResults.push({
+        user: username,
+        answers: answers
+      });
+
+      localStorage.setItem('gab_results', JSON.stringify(gabResults));
+
+      alert('GAB-Prüfung erfolgreich eingereicht');
+    }
+
+    renderGabExam();
+
+    function submitTip() {
+      alert(
+        'Tip submitted successfully. Reference ID: FIB-' +
+        Math.random().toString(36).substr(2,8).toUpperCase()
+      );
+    }
+  </script>
+
+</body>
+</html>
